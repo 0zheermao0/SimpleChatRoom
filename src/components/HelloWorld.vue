@@ -28,6 +28,7 @@ import {
   Promotion
 } from '@element-plus/icons-vue'
 import request from "@/network/request";
+import {ElMessage, ElMessageBox} from "element-plus";
 
 export default {
   name: 'HelloWorld',
@@ -40,27 +41,49 @@ export default {
   },
   data () {
     return {
+      current_user:'',
       input: '',
-      messages: [
-        {
-          content: '你好，我是哲儿猫',
-          time: '12:00',
-          send: '哲儿猫'
-        },
-        {
-          content: '你好，我不是哲儿猫',
-          time: '12:00',
-          send: '123'
-        }]
+      messages: []
+    }
+  },
+  sockets: {
+    connect: function () {
+      console.log('connect 成功');
+    },
+    message: function (data) {
+      console.log('message', data);
+      this.messages = data;
+    },
+    disconnect: function () {
+      console.log('disconnect');
     }
   },
   methods: {
+    input_name () {
+      ElMessageBox.prompt('请输入你的昵称', 'Tip', {
+        confirmButtonText: '确认',
+        // cancelButtonText: 'Cancel'
+      })
+          .then(({ value }) => {
+            this.current_user = value;
+            ElMessage({
+              type: 'success',
+              message: `你的昵称是:${value}，享受你的聊天`,
+            })
+          })
+          .catch(() => {
+            ElMessage({
+              type: 'info',
+              message: '输入被取消',
+            })
+          })
+    },
     sendMessage () {
       let date = new Date();
       let form = new FormData();
       form.append('content', this.input);
       form.append('time', date.toLocaleString());
-      form.append('send', '哲儿猫');
+      form.append('send', this.current_user);
       if (this.input) {
         request({
           method: 'post',
@@ -83,12 +106,20 @@ export default {
       }else {
         this.$message.error('内容不能为空');
       }
-      // this.input = ''
+      this.$socket.emit('broadcast');
     },
     sendFile () {
       this.$message.error('暂不支持文件发送')
     }
-  }
+  },
+  mounted () {
+    this.input_name();
+    console.log('mounted');
+    this.$socket.emit('broadcast');
+  },
+  created () {
+    console.log('created');
+  },
 }
 </script>
 
