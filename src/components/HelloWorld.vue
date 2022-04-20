@@ -1,24 +1,28 @@
 <template>
-  <h1 class="chat-room-title">哲儿猫聊天室</h1>
-  <div class="chat-room-container">
-    <el-scrollbar>
-      <div class="chat-room-messages">
-        <div class="chat-room-message" v-for="message in messages" :key="message">
-          <ChatBubble :message="message"></ChatBubble>
+  <section class="container">
+    <h1 class="chat-room-title">哲儿猫聊天室
+      <el-row justify="center"><div class="total-user" style="font-size: 0.5vh;">你当前的昵称是：{{current_user}} ☆*: .｡. o(≧▽≦)o .｡.:*☆ 当前在线人数: {{total_users}}</div></el-row>
+    </h1>
+    <div class="chat-room-container">
+      <el-scrollbar ref="scroller" style="height: 100%">
+        <div class="chat-room-messages" ref="chat-room-messages">
+          <div class="chat-room-message" v-for="message in messages" :key="message">
+            <ChatBubble :message="message" class="chat-bubble"></ChatBubble>
+          </div>
         </div>
-      </div>
-    </el-scrollbar>
-  </div>
-  <div class="chat-room-input">
-    <el-space>
-      <el-input v-model="input" @keyup.enter="sendMessage" autosize placeholder="请输入" />
-      <el-button type="primary" @click="sendMessage" circle>
-        <el-icon><caret-right /></el-icon>
-      </el-button>
-      <el-button type="primary" @click="sendFile" circle>
-        <el-icon><promotion /></el-icon></el-button>
-    </el-space>
-  </div>
+      </el-scrollbar>
+    </div>
+    <div class="chat-room-input">
+      <el-space>
+        <el-input v-model="input" @keyup.enter="sendMessage" autosize placeholder="请输入" />
+        <el-button type="primary" @click="sendMessage" circle>
+          <el-icon><caret-right /></el-icon>
+        </el-button>
+        <el-button type="primary" @click="sendFile" circle>
+          <el-icon><promotion/></el-icon></el-button>
+      </el-space>
+    </div>
+  </section>
 </template>
 
 <script>
@@ -41,9 +45,10 @@ export default {
   },
   data () {
     return {
-      current_user:'',
+      current_user:'anonymous',
       input: '',
-      messages: []
+      messages: [],
+      total_users: 0,
     }
   },
   sockets: {
@@ -52,10 +57,15 @@ export default {
     },
     message: function (data) {
       console.log('message', data);
-      this.messages = data;
+      this.messages = data.data;
+      this.total_users = data.total_user;
+      this.$nextTick(() => {
+        this.$refs.scroller.setScrollTop(this.$refs["chat-room-messages"].scrollHeight);
+      });
     },
-    disconnect: function () {
+    disconnect: function (data) {
       console.log('disconnect');
+      this.total_users = data.total_user;
     }
   },
   methods: {
@@ -63,18 +73,32 @@ export default {
       ElMessageBox.prompt('请输入你的昵称', 'Tip', {
         confirmButtonText: '确认',
         // cancelButtonText: 'Cancel'
+        showCancelButton: false,
+        showClose: false,
+        closeOnClickModal: false,
+        closeOnPressEscape: false,
       })
           .then(({ value }) => {
-            this.current_user = value;
-            ElMessage({
-              type: 'success',
-              message: `你的昵称是:${value}，享受你的聊天`,
-            })
+            if (value) {
+              this.current_user = value;
+              ElMessage({
+                type: 'success',
+                message: `Your nick name is: ${value}，enjoy your chat!`
+              })
+              this.$store.commit('setUser', value);
+            }
+            else {
+              this.current_user = 'anonymous';
+              ElMessage({
+                type: 'info',
+                message: 'Your are going to chat as name: anonymous, but your ip address will be recorded.'
+              })
+            }
           })
           .catch(() => {
             ElMessage({
               type: 'info',
-              message: '输入被取消',
+              message: 'Your are going to chat as name: anonymous, but your ip address will be recorded.'
             })
           })
     },
@@ -120,6 +144,10 @@ export default {
   created () {
     console.log('created');
   },
+  unmounted() {
+    this.$socket.emit('broadcast');
+    // this.$socket.emit('disconnect');
+  }
 }
 </script>
 
@@ -154,7 +182,7 @@ a {
   width: 80vw;
   height: 75vh;
   background-color: #f2f2f2;
-  border-radius: 10px;
+  border-radius: 0 0 10px 10px;
   overflow: hidden;
 }
  .chat-room-input {

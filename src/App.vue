@@ -1,6 +1,9 @@
 <template>
 <!--  <img alt="Vue logo" src="./assets/logo.png">-->
-  <HelloWorld msg="Welcome to Your Vue.js App"/>
+  <div class="background">
+    <img class="bgIMG" src="@/assets/nightscene.jpg"  alt=""/>
+  </div>
+  <div style="padding-top: 45px;"><HelloWorld/></div>
 </template>
 
 <script>
@@ -21,6 +24,19 @@ export default {
   -moz-osx-font-smoothing: grayscale;
   text-align: center;
   color: #2c3e50;
-  margin-top: 60px;
+  /*margin-top: 60px;*/
+  z-index: 1;
+}
+.background {
+  width: 99vw;
+  height: 98vh;
+  background-repeat: no-repeat;
+  filter: blur(8px);
+  z-index: -1;
+  position: absolute;
+}
+.bgIMG {
+  width: 100%;
+  height: 100%;
 }
 </style>
