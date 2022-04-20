@@ -1,7 +1,10 @@
 <template>
   <section class="container">
+    <el-affix :offset="10" class="join-affix">
+      <el-button type="primary" size="small" color="#8b91ff" style="color: #f2f2f2" @click="onClickJoinRoom">密语聊天</el-button>
+    </el-affix>
     <h1 class="chat-room-title">哲儿猫聊天室
-      <el-row justify="center"><div class="total-user" style="font-size: 0.5vh;">你当前的昵称是：{{current_user}} ☆*: .｡. o(≧▽≦)o .｡.:*☆ 当前在线人数: {{total_users}}</div></el-row>
+      <el-row justify="center"><div class="total-user" style="font-size: 0.5vh;">你当前的昵称是：{{current_user}} ☆*: .｡. o(≧▽≦)o .｡.:*☆ 当前总在线人数: {{total_users}}</div></el-row>
     </h1>
     <div class="chat-room-container">
       <el-scrollbar ref="scroller" style="height: 100%">
@@ -46,6 +49,7 @@ export default {
   data () {
     return {
       current_user:'anonymous',
+      current_room:-1,
       input: '',
       messages: [],
       total_users: 0,
@@ -56,7 +60,7 @@ export default {
       console.log('connect 成功');
     },
     message: function (data) {
-      console.log('message', data);
+      console.log('服务端触发message', data);
       this.messages = data.data;
       this.total_users = data.total_user;
       this.$nextTick(() => {
@@ -66,7 +70,12 @@ export default {
     disconnect: function (data) {
       console.log('disconnect');
       this.total_users = data.total_user;
-    }
+    },
+    rcvRoom: function (data, cb) {
+      console.log('rcvRoom', data);
+      this.current_room = data.room;
+      cb();
+    },
   },
   methods: {
     input_name () {
@@ -103,6 +112,46 @@ export default {
           })
     },
     sendMessage () {
+      if(this.current_room !== -1){
+        this.sendGlobal();
+      }else {
+        this.send2Room();
+      }
+      this.$nextTick(() => {
+        this.$refs.scroller.setScrollTop(this.$refs["chat-room-messages"].scrollHeight);
+      });
+    },
+    sendFile () {
+      this.$message.error('暂不支持文件发送')
+    },
+    onClickJoinRoom () {
+      ElMessageBox.prompt('请输入房间号', '密语房间聊天', {
+        confirmButtonText: '加入',
+        cancelButtonText: '取消',
+      })
+          .then(({ value }) => {
+            ElMessage({
+              type: 'success',
+              message: `加入密语房间：${value}`,
+            })
+            this.current_room = value;
+            console.log('加入密语房间：', value);
+            this.joinRoom(value);
+          })
+          .catch(() => {
+            ElMessage({
+              type: 'info',
+              message: '密语房间加入失败',
+            })
+          })
+    },
+    joinRoom (room) {
+      this.messages = [];
+      this.$socket.emit('join', {
+        room: room
+      });
+    },
+    sendGlobal(){
       let date = new Date();
       let form = new FormData();
       form.append('content', this.input);
@@ -132,12 +181,22 @@ export default {
       }
       this.$socket.emit('broadcast');
     },
-    sendFile () {
-      this.$message.error('暂不支持文件发送')
+    send2Room(){
+      console.log('调用了send2Room');
+      let date = new Date();
+      let form = new FormData();
+      form.append('content', this.input);
+      form.append('time', date.toLocaleString());
+      form.append('send', this.current_user);
+      form.append('room', this.current_room);
+      this.$socket.emit('send2Room', {
+        room: this.current_room,
+        message: form
+      });
     }
   },
   mounted () {
-    this.input_name();
+    // this.input_name();
     console.log('mounted');
     this.$socket.emit('broadcast');
   },
@@ -197,4 +256,11 @@ a {
   border: none;
   position: inherit;
  }
+.join-affix {
+  position: absolute;
+  text-align: left;
+  /*height: 400px;*/
+  border-radius: 4px;
+  /*background: var(--el-color-primary-light-9);*/
+}
 </style>
