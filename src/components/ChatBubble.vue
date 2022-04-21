@@ -1,6 +1,6 @@
 <template>
   <div>
-    <el-row justify="end" v-if="isMe">
+    <el-row justify="end" v-if="isMe && this.myMessage.send !== this.adminIdentify">
       <div class="my-container">
         <el-row>
           <div class="message-contents" style="float: right">{{message.content}}<el-icon><Avatar/></el-icon></div>
@@ -8,12 +8,20 @@
         <div class="message-details">{{message.time}} 发送人：{{message.send}}</div>
       </div>
     </el-row>
-    <el-row justify="start" v-if="!isMe">
+    <el-row justify="start" v-if="!isMe && this.myMessage.send !== this.adminIdentify">
       <div class="container">
         <el-row>
           <div class="message-contents"><el-icon><Avatar/></el-icon>{{message.content}}</div>
         </el-row>
         <div class="message-details">{{message.time}} 发送人：{{message.send}}</div>
+      </div>
+    </el-row>
+    <el-row justify="center" v-if="isAdmin">
+      <div class="admin-container">
+<!--        <el-row>-->
+<!--          <div class="message-contents">管理员信息测试</div>-->
+<!--        </el-row>-->
+        系统提示：{{message.content}}
       </div>
     </el-row>
   </div>
@@ -34,7 +42,9 @@ export default {
         type: Boolean,
         default: false
       },
-      myMessage: this.message
+      myMessage: this.message,
+      isAdmin: false,
+      adminIdentify: 'adminnnn'
     }
   },
   props: {
@@ -46,6 +56,7 @@ export default {
   created() {
     this.myMessage = this.prop_message.message.value
     this.isMe = (this.myMessage.send === this.$store.getters.getUser)
+    this.isAdmin = (this.myMessage.send === this.adminIdentify)
   },
   setup(props) {
     const prop_message = toRefs(props)
@@ -81,5 +92,13 @@ export default {
   width: 30%;
   border-radius: 10px;
   margin: 5px;
+}
+.admin-container{
+  color: #fffaff;
+  font-size: 1px;
+  background-color: #8c7e7e;
+  width: 30%;
+  border-radius: 5px;
+  margin: 1px;
 }
 </style>

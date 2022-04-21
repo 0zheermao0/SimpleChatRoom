@@ -6,9 +6,14 @@ import VueSocketIO from 'vue-3-socket.io'
 import SocketIO from "socket.io-client"
 import {baseURL} from "@/config/baseConfig";
 import store from './store/index'
+import {
+    Promotion
+} from '@element-plus/icons-vue'
 
 const app = createApp(App)
 
+// eslint-disable-next-line vue/multi-word-component-names
+app.component('Promotion', Promotion)
 app.use(ElementPlus)
 app.use(
   new VueSocketIO({

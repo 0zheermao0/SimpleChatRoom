@@ -4,7 +4,7 @@
       <el-button type="primary" size="small" color="#8b91ff" style="color: #f2f2f2" @click="onClickJoinRoom">密语聊天</el-button>
     </el-affix>
     <h1 class="chat-room-title">哲儿猫聊天室
-      <el-row justify="center"><div class="total-user" style="font-size: 0.5vh;">你当前的昵称是：{{current_user}} ☆*: .｡. o(≧▽≦)o .｡.:*☆ 当前总在线人数: {{total_users}}</div></el-row>
+      <el-row justify="center"><div class="total-user" style="font-size: 0.5vh;">你当前所处的房间是: {{current_room}} (*^▽^*) 昵称是：{{current_user}}</div></el-row>
     </h1>
     <div class="chat-room-container">
       <el-scrollbar ref="scroller" style="height: 100%">
@@ -21,8 +21,7 @@
         <el-button type="primary" @click="sendMessage" circle>
           <el-icon><caret-right /></el-icon>
         </el-button>
-        <el-button type="primary" @click="sendFile" circle>
-          <el-icon><promotion/></el-icon></el-button>
+        <UploadComponent/>
       </el-space>
     </div>
   </section>
@@ -30,9 +29,9 @@
 
 <script>
 import ChatBubble from "@/components/ChatBubble";
+import UploadComponent from "@/components/UploadComponent";
 import {
-  CaretRight,
-  Promotion
+  CaretRight
 } from '@element-plus/icons-vue'
 import request from "@/network/request";
 import {ElMessage, ElMessageBox} from "element-plus";
@@ -42,14 +41,14 @@ export default {
   components: {
     ChatBubble,
     CaretRight,
-    Promotion
+    UploadComponent
   },
   props: {
   },
   data () {
     return {
       current_user:'anonymous',
-      current_room:-1,
+      current_room:'-1',
       input: '',
       messages: [],
       total_users: 0,
@@ -71,17 +70,18 @@ export default {
       console.log('disconnect');
       this.total_users = data.total_user;
     },
-    rcvRoom: function (data, cb) {
+    rcvRoom: function (data) {
       console.log('rcvRoom', data);
-      this.current_room = data.room;
-      cb();
+      this.messages = data.data;
+      this.$nextTick(() => {
+        this.$refs.scroller.setScrollTop(this.$refs["chat-room-messages"].scrollHeight);
+      });
     },
   },
   methods: {
     input_name () {
       ElMessageBox.prompt('请输入你的昵称', 'Tip', {
         confirmButtonText: '确认',
-        // cancelButtonText: 'Cancel'
         showCancelButton: false,
         showClose: false,
         closeOnClickModal: false,
@@ -112,24 +112,35 @@ export default {
           })
     },
     sendMessage () {
-      if(this.current_room !== -1){
-        this.sendGlobal();
-      }else {
-        this.send2Room();
-      }
+      // if(this.current_room === -1){
+      //   console.log('调用了公屏发送');
+      //   this.sendGlobal();
+      // }else {
+      //   console.log('调用了房间发送');
+      this.send2Room();
+      // }
       this.$nextTick(() => {
         this.$refs.scroller.setScrollTop(this.$refs["chat-room-messages"].scrollHeight);
       });
     },
-    sendFile () {
+    onClickSendFile () {
       this.$message.error('暂不支持文件发送')
     },
     onClickJoinRoom () {
       ElMessageBox.prompt('请输入房间号', '密语房间聊天', {
         confirmButtonText: '加入',
         cancelButtonText: '取消',
+        inputPattern: /^[0-9]*$/,
+        inputErrorMessage: '目前只支持加入数字房间',
       })
           .then(({ value }) => {
+            this.$socket.emit('leave', {
+              room: this.current_room,
+              user: this.current_user
+            });
+            if (!value) {
+              value = '-1';
+            }
             ElMessage({
               type: 'success',
               message: `加入密语房间：${value}`,
@@ -146,7 +157,7 @@ export default {
           })
     },
     joinRoom (room) {
-      this.messages = [];
+      // this.messages = [];
       this.$socket.emit('join', {
         room: room
       });
@@ -155,8 +166,10 @@ export default {
       let date = new Date();
       let form = new FormData();
       form.append('content', this.input);
+      form.append('user', this.current_user);
       form.append('time', date.toLocaleString());
-      form.append('send', this.current_user);
+      form.append('room', this.current_room);
+      console.log('sendGlobal发送公屏消息', form['content']);
       if (this.input) {
         request({
           method: 'post',
@@ -182,23 +195,36 @@ export default {
       this.$socket.emit('broadcast');
     },
     send2Room(){
+      if (!this.input) {
+        this.$message.error('内容不能为空');
+        return;
+      }
       console.log('调用了send2Room');
       let date = new Date();
-      let form = new FormData();
-      form.append('content', this.input);
-      form.append('time', date.toLocaleString());
-      form.append('send', this.current_user);
-      form.append('room', this.current_room);
+      let form = {
+        user: this.current_user,
+        content: this.input,
+        time: date.toLocaleString(),
+        room: this.current_room,
+      };
+      console.log('send2Room发送的数据是', form);
       this.$socket.emit('send2Room', {
         room: this.current_room,
         message: form
       });
+      this.input = '';
+      this.$nextTick(() => {
+        this.$refs.scroller.setScrollTop(this.$refs["chat-room-messages"].scrollHeight);
+      });
     }
   },
   mounted () {
-    // this.input_name();
+    this.input_name();
     console.log('mounted');
-    this.$socket.emit('broadcast');
+    this.joinRoom(this.current_room);
+    // this.$socket.emit('broadcast', {
+    //   room: this.current_room
+    // });
   },
   created () {
     console.log('created');
