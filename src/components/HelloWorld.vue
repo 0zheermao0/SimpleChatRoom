@@ -1,44 +1,53 @@
 <template>
-  <section class="container">
+  <div>
     <el-affix :offset="10" class="join-affix">
       <el-button type="primary" size="small" color="#8b91ff" style="color: #f2f2f2" @click="onClickJoinRoom">密语聊天</el-button>
     </el-affix>
-    <h1 class="chat-room-title">哲儿猫聊天室
-      <el-row justify="center"><div class="total-user" style="font-size: 0.5vh;">你当前所处的房间是: {{current_room}} (*^▽^*) 昵称是：{{current_user}}</div></el-row>
-    </h1>
-    <div class="chat-room-container">
-      <el-scrollbar ref="scroller" style="height: 100%">
-        <div class="chat-room-messages" ref="chat-room-messages">
-          <div class="chat-room-message" v-for="message in messages" :key="message">
-            <ChatBubble :message="message" class="chat-bubble" v-on:touchBottom="this.touchBottom"></ChatBubble>
-          </div>
+    <el-row>
+      <UserInfo :user="current_user" :room="current_room" class="user-info-card hidden-xs-only"/>
+      <section class="container">
+        <h1 class="chat-room-title">哲儿猫聊天室
+<!--          <el-row justify="center"><div class="total-user" style="font-size: 0.5vh;">你当前所处的房间是: {{current_room}} (*^▽^*) 昵称是：{{current_user}}</div></el-row>-->
+          <el-row justify="center"><div class="total-user" style="font-size: 0.5vh;">(*^▽^*)</div></el-row>
+        </h1>
+        <div class="chat-room-container">
+          <el-scrollbar ref="scroller" style="height: 100%">
+            <div class="chat-room-messages" ref="chat-room-messages">
+              <div class="chat-room-message" v-for="message in messages" :key="message">
+                <ChatBubble :message="message" class="chat-bubble" v-on:touchBottom="this.touchBottom"></ChatBubble>
+              </div>
+            </div>
+          </el-scrollbar>
         </div>
-      </el-scrollbar>
-    </div>
-    <div class="chat-room-input">
-      <el-space>
-        <el-input v-model="input" @keyup.enter="sendMessage" autosize placeholder="请输入" />
-        <el-button type="primary" @click="sendMessage" circle>
-          <el-icon><caret-right /></el-icon>
-        </el-button>
-        <UploadComponent :data="{'user': current_user, 'room': this.current_room, 'time': new Date().toLocaleString()}" :key="current_room"/>
-      </el-space>
-    </div>
-  </section>
+        <div class="chat-room-input">
+          <el-space>
+            <el-input v-model="input" @keyup.enter="sendMessage" autosize placeholder="请输入" />
+            <el-button type="primary" @click="sendMessage" circle>
+              <el-icon><caret-right /></el-icon>
+            </el-button>
+            <UploadComponent :data="{'user': current_user, 'room': this.current_room, 'time': new Date().toLocaleString()}" :key="current_room"/>
+          </el-space>
+        </div>
+      </section>
+    </el-row>
+  </div>
 </template>
 
 <script>
 import ChatBubble from "@/components/ChatBubble";
 import UploadComponent from "@/components/UploadComponent";
+import 'element-plus/theme-chalk/display.css'
 import {
   CaretRight
 } from '@element-plus/icons-vue'
 import request from "@/network/request";
 import {ElMessage, ElMessageBox} from "element-plus";
+import UserInfo from "@/components/UserInfo";
 
 export default {
   name: 'HelloWorld',
   components: {
+    UserInfo,
     ChatBubble,
     CaretRight,
     UploadComponent
@@ -79,8 +88,43 @@ export default {
     },
   },
   methods: {
+    notify () {
+      this.$refs.audioTip.load();
+      this.$refs.audioTip.play();
+      //如果不是当前页面，标题栏闪动+消息提示
+      if(document.hidden){
+        let options = {
+          body: '您有新的未读消息，请及时处理',
+          silent: true
+        }
+        let notification = new Notification('消息通知', options);
+        notification.onclick=function(){
+          window.open(`页面链接`, '_blank');
+        }
+        //标题栏闪动
+        let defaultTitle = document.title;
+        if(this.isReceive){
+          return;
+        }else{
+          this.isReceive=true;
+        }
+        this.timer=setInterval(function(){
+          let title = document.title;
+          if (document.hidden&&this.isReceive) {
+            if (/你有新消息/.test(title) == false) {
+              document.title = '【你有新消息】';
+            } else {
+              document.title = defaultTitle;
+            }
+          } else {
+            this.isReceive=false;
+            document.title = defaultTitle;
+          }
+        }, 500);
+      }
+    },
     touchBottom () {
-      console.log('图片完成加载触发触底');
+      // console.log('图片完成加载触发触底');
       this.$nextTick(() => {
         this.$refs.scroller.setScrollTop(this.$refs["chat-room-messages"].scrollHeight);
       });
@@ -202,7 +246,7 @@ export default {
       this.$socket.emit('broadcast');
     },
     send2Room(){
-      if (!this.input) {
+      if (!this.input || this.input.trim() === '') {
         this.$message.error('内容不能为空');
         return;
       }
@@ -244,7 +288,20 @@ export default {
 </script>
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
-<style scoped>
+<style scoped lang="scss">
+@import '../assets/scss/common';
+@include background_color("background_color");
+@include font_color("text-color");
+
+.container{
+  width: 60vw;
+  float: right;
+  margin-left: 1vw;
+  /*margin-right: 1vw;*/
+}
+.user-info-card{
+  height: 88vh;
+}
 h3 {
   margin: 40px 0 0;
 }
@@ -260,7 +317,7 @@ a {
   color: #42b983;
 }
 .chat-room-title {
-  width: 80vw;
+  width: 100%;
   margin: 0 auto;
   color: aliceblue;
   font-size: 30px;
@@ -271,29 +328,30 @@ a {
 }
 .chat-room-container {
   margin: 0 auto;
-  width: 80vw;
+  width: 100%;
   height: 75vh;
   background-color: #f2f2f2;
   border-radius: 0 0 10px 10px;
   overflow: hidden;
 }
  .chat-room-input {
-  width: 80vw;
+  width: 100%;
   margin: 1vh auto;
   border-radius: 10px;
   position: relative;
    text-align: right;
 }
  .el-input {
-  width: 75vw;
+  width: 55vw;
   border: none;
   position: inherit;
  }
 .join-affix {
-  position: absolute;
-  text-align: left;
+  position: fixed;
+  text-align: right;
   /*height: 400px;*/
   border-radius: 4px;
   /*background: var(--el-color-primary-light-9);*/
+  z-index: 1;
 }
 </style>

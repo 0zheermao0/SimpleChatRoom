@@ -3,7 +3,7 @@
   <div class="background">
     <img class="bgIMG" src="@/assets/nightscene.jpg"  alt=""/>
   </div>
-  <div style="padding-top: 45px;"><HelloWorld/></div>
+  <div style="padding-top: 45px;"><HelloWorld class="msg-section"/></div>
 </template>
 
 <script>
