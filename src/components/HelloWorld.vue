@@ -10,7 +10,7 @@
       <el-scrollbar ref="scroller" style="height: 100%">
         <div class="chat-room-messages" ref="chat-room-messages">
           <div class="chat-room-message" v-for="message in messages" :key="message">
-            <ChatBubble :message="message" class="chat-bubble"></ChatBubble>
+            <ChatBubble :message="message" class="chat-bubble" v-on:touchBottom="this.touchBottom"></ChatBubble>
           </div>
         </div>
       </el-scrollbar>
@@ -21,7 +21,7 @@
         <el-button type="primary" @click="sendMessage" circle>
           <el-icon><caret-right /></el-icon>
         </el-button>
-        <UploadComponent/>
+        <UploadComponent :data="{'user': current_user, 'room': this.current_room, 'time': new Date().toLocaleString()}" :key="current_room"/>
       </el-space>
     </div>
   </section>
@@ -79,6 +79,12 @@ export default {
     },
   },
   methods: {
+    touchBottom () {
+      console.log('图片完成加载触发触底');
+      this.$nextTick(() => {
+        this.$refs.scroller.setScrollTop(this.$refs["chat-room-messages"].scrollHeight);
+      });
+    },
     input_name () {
       ElMessageBox.prompt('请输入你的昵称', 'Tip', {
         confirmButtonText: '确认',
@@ -146,7 +152,8 @@ export default {
               message: `加入密语房间：${value}`,
             })
             this.current_room = value;
-            console.log('加入密语房间：', value);
+            this.$store.commit('setRoom', value);
+            console.log('加入密语房间：', this.current_room);
             this.joinRoom(value);
           })
           .catch(() => {
