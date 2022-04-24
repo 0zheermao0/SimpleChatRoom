@@ -84,13 +84,16 @@ export default {
 }
 </script>
 
-<style scoped>
+<style scoped lang="scss">
+@import "../assets/scss/_handle.scss";
+
 .message-contents{
   text-align: left;
   padding-left: 10px;
   border-radius: 10px;
   float: right;
   color: #f2f2f2;
+  @include font_color('font_color1');
   word-break: break-all;
 }
 .message-details{
@@ -99,9 +102,11 @@ export default {
   border-radius: 10px;
   text-align: right;
   color: #f2f2f2;
+  @include font_color('font_color1')
 }
 .container{
   background-color: #6770ff;
+  @include background-color('bubble_color1');
   width: 30%;
   border-radius: 10px;
   margin: 5px;
@@ -109,6 +114,7 @@ export default {
 }
 .my-container{
   background-color: #8b91ff;
+  @include background-color('my_bubble_color1');
   width: 30%;
   border-radius: 10px;
   margin: 5px;
@@ -116,7 +122,7 @@ export default {
 }
 .admin-container{
   color: #fffaff;
-  font-size: 1px;
+  font-size: 1vh;
   background-color: #8c7e7e;
   width: 30%;
   border-radius: 5px;
@@ -129,7 +135,8 @@ export default {
   border-radius: 10px;
 }
 .el-image >>> .el-image__placeholder{
-  background: url('../assets/logo.png') no-repeat 50% 50% !important;
+  background: url('/src/assets/logo.png') no-repeat 50% 50% !important;
   background-size: 100% !important;
 }
+
 </style>

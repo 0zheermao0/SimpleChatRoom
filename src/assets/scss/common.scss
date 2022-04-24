@@ -1,1 +1,68 @@
 @import "./_handle.scss";
+
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.text {
+  font-size: 14px;
+}
+
+.item {
+  margin-bottom: 18px;
+}
+
+.box-card {
+  margin-left: 3vw;
+  width: 30vw;
+  height: 100%;
+}
+.setting-btn {
+  margin-left: auto;
+  color: #f2f2f2;
+}
+.announcement-card {
+  margin-top: 5%;
+}
+
+.el-card{
+  @include background-color('background_color');
+  @include font_color('font_color2');
+}
+
+/deep/.el-drawer {
+  --el-drawer-bg-color: #5b5b5b;
+  opacity:0.8;
+  --el-drawer-padding-primary: var(--el-dialog-padding-primary, 20px);
+}
+
+.wave {
+  position: relative;
+  left: 50%;
+  width: 150vw;
+  height: 150vw;
+  background-color: #7c9cf1;
+  @include background-color('wave_color');
+  border-radius: 46%;
+  animation-duration: 6s;
+  animation-name: rotate;
+  animation-iteration-count: infinite;
+  animation-timing-function: linear;
+  margin-top: 20%;
+}
+
+@keyframes rotate {
+  0% {
+    transform: translate(-50%, 0) rotateZ(0deg);
+  }
+
+  50% {
+    transform: translate(-50%, -1%) rotateZ(180deg);
+  }
+
+  100% {
+    transform: translate(-50%, 0) rotateZ(360deg);
+  }
+}

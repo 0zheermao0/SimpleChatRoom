@@ -4,31 +4,33 @@
       <el-button type="primary" size="small" color="#8b91ff" style="color: #f2f2f2" @click="onClickJoinRoom">密语聊天</el-button>
     </el-affix>
     <el-row>
-      <UserInfo :user="current_user" :room="current_room" class="user-info-card hidden-xs-only"/>
-      <section class="container">
-        <h1 class="chat-room-title">哲儿猫聊天室
-<!--          <el-row justify="center"><div class="total-user" style="font-size: 0.5vh;">你当前所处的房间是: {{current_room}} (*^▽^*) 昵称是：{{current_user}}</div></el-row>-->
-          <el-row justify="center"><div class="total-user" style="font-size: 0.5vh;">(*^▽^*)</div></el-row>
-        </h1>
-        <div class="chat-room-container">
-          <el-scrollbar ref="scroller" style="height: 100%">
-            <div class="chat-room-messages" ref="chat-room-messages">
-              <div class="chat-room-message" v-for="message in messages" :key="message">
-                <ChatBubble :message="message" class="chat-bubble" v-on:touchBottom="this.touchBottom"></ChatBubble>
+      <el-col :span="8"><UserInfo v-model:user="current_user" v-model:room="current_room" v-model:total="total_users" class="user-info-card hidden-xs-only"/></el-col>
+      <el-col :span="16" :xs="24">
+        <section class="msg-container">
+          <h1 class="chat-room-title">哲儿猫聊天室
+            <!--          <el-row justify="center"><div class="total-user" style="font-size: 0.5vh;">你当前所处的房间是: {{current_room}} (*^▽^*) 昵称是：{{current_user}}</div></el-row>-->
+            <el-row justify="center"><div class="total-user" style="font-size: 0.5vh;">(*^▽^*)</div></el-row>
+          </h1>
+          <div class="chat-room-container">
+            <el-scrollbar ref="scroller" style="height: 100%">
+              <div class="chat-room-messages" ref="chat-room-messages">
+                <div class="chat-room-message" v-for="message in messages" :key="message">
+                  <ChatBubble :message="message" class="chat-bubble" v-on:touchBottom="this.touchBottom"></ChatBubble>
+                </div>
               </div>
-            </div>
-          </el-scrollbar>
-        </div>
-        <div class="chat-room-input">
-          <el-space>
-            <el-input v-model="input" @keyup.enter="sendMessage" autosize placeholder="请输入" />
-            <el-button type="primary" @click="sendMessage" circle>
-              <el-icon><caret-right /></el-icon>
-            </el-button>
-            <UploadComponent :data="{'user': current_user, 'room': this.current_room, 'time': new Date().toLocaleString()}" :key="current_room"/>
-          </el-space>
-        </div>
-      </section>
+            </el-scrollbar>
+          </div>
+          <div class="chat-room-input">
+            <el-space>
+              <el-input v-model="input" @keyup.enter="sendMessage" autosize placeholder="请输入" />
+              <el-button type="primary" @click="sendMessage" circle>
+                <el-icon><caret-right /></el-icon>
+              </el-button>
+              <UploadComponent :data="{'user': current_user, 'room': this.current_room, 'time': new Date().toLocaleString()}" :key="current_room"/>
+            </el-space>
+          </div>
+        </section>
+      </el-col>
     </el-row>
   </div>
 </template>
@@ -40,7 +42,6 @@ import 'element-plus/theme-chalk/display.css'
 import {
   CaretRight
 } from '@element-plus/icons-vue'
-import request from "@/network/request";
 import {ElMessage, ElMessageBox} from "element-plus";
 import UserInfo from "@/components/UserInfo";
 
@@ -82,6 +83,7 @@ export default {
     rcvRoom: function (data) {
       console.log('rcvRoom', data);
       this.messages = data.data;
+      this.total_users = data.count;
       this.$nextTick(() => {
         this.$refs.scroller.setScrollTop(this.$refs["chat-room-messages"].scrollHeight);
       });
@@ -213,38 +215,6 @@ export default {
         room: room
       });
     },
-    sendGlobal(){
-      let date = new Date();
-      let form = new FormData();
-      form.append('content', this.input);
-      form.append('user', this.current_user);
-      form.append('time', date.toLocaleString());
-      form.append('room', this.current_room);
-      console.log('sendGlobal发送公屏消息', form['content']);
-      if (this.input) {
-        request({
-          method: 'post',
-          url: '/chat/send',
-          data: form
-        }).then((res) => {
-          console.log('send 测试', res.data.code);
-          if(res.data.code === 200) {
-            this.messages.push({
-              content: this.input,
-              time: `${date.getHours()}:${date.getMinutes()}`,
-              send: '哲儿猫'
-            });
-            this.messages = res.data.data
-            this.input = '';
-          }else {
-            this.$message.error("发送失败");
-          }
-        })
-      }else {
-        this.$message.error('内容不能为空');
-      }
-      this.$socket.emit('broadcast');
-    },
     send2Room(){
       if (!this.input || this.input.trim() === '') {
         this.$message.error('内容不能为空');
@@ -253,7 +223,7 @@ export default {
       console.log('调用了send2Room');
       let date = new Date();
       let form = {
-        user: this.current_user,
+        user: this.$store.getters.getUser,
         content: this.input,
         time: date.toLocaleString(),
         room: this.current_room,
@@ -273,9 +243,6 @@ export default {
     this.input_name();
     console.log('mounted');
     this.joinRoom(this.current_room);
-    // this.$socket.emit('broadcast', {
-    //   room: this.current_room
-    // });
   },
   created () {
     console.log('created');
@@ -289,15 +256,12 @@ export default {
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped lang="scss">
-@import '../assets/scss/common';
-@include background_color("background_color");
-@include font_color("text-color");
+@import "../assets/scss/_handle.scss";
 
-.container{
+.msg-container{
   width: 60vw;
-  float: right;
-  margin-left: 1vw;
-  /*margin-right: 1vw;*/
+  //margin-right: 5vw;
+  //margin-left: 3vw;
 }
 .user-info-card{
   height: 88vh;
@@ -324,6 +288,7 @@ a {
   font-weight: normal;
   text-align: center;
   background-color: #7c9cf1;
+  @include background_color('title_color');
   border-radius: 10px 10px 0 0;
 }
 .chat-room-container {
@@ -345,6 +310,12 @@ a {
   width: 55vw;
   border: none;
   position: inherit;
+   @include background_color('background_color');
+   @include font_color('background_color');
+ }
+ .el-input /deep/ .el-input__inner{
+  @include background_color('background_color');
+  @include font_color('font_color2');
  }
 .join-affix {
   position: fixed;
@@ -353,5 +324,11 @@ a {
   border-radius: 4px;
   /*background: var(--el-color-primary-light-9);*/
   z-index: 1;
+}
+/deep/.el-col-xs-24 {
+  display: block;
+  max-width: 100%;
+  float: right;
+  text-align: -webkit-center;
 }
 </style>

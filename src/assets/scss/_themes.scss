@@ -1,10 +1,22 @@
 $themes: (
         light: (
-                background_color: #cccccc,//背景色
-                text-color: rgba(0, 0, 0, 0.65), // 主文本色
+                background_color: #f2f2f2,
+                title_color: #7c9cf1,
+                wave_color: #7c9cf1,
+                text_color1: #f2f2f2,
+                bubble_color1: #6770ff,
+                my_bubble_color1: #8b91ff,
+                font_color1: #f2f2f2,
+                font_color2: #303133,
         ),
         dark: (
-                background_color: #181c27,//背景
-                text-color: rgba(255, 255, 255, 0.65), // 主文本色
+                background_color: #5b5b5b,
+                title_color: #637cbe,
+                wave_color: #9f9f9f,
+                text_color1: #c0c0c0,
+                bubble_color1: #4f56c2,
+                my_bubble_color1: #5d61a8,
+                font_color1: #c0c0c0,
+                font_color2: #c0c0c0,
         )
 );

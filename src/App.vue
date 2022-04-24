@@ -17,7 +17,9 @@ export default {
 }
 </script>
 
-<style>
+<style lang="scss">
+@import "./assets/scss/_handle.scss";
+
 #app {
   font-family: Avenir, Helvetica, Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
@@ -28,15 +30,19 @@ export default {
   z-index: 1;
 }
 .background {
+  @include background_color('background_color');
   width: 99vw;
   height: 98vh;
   background-repeat: no-repeat;
-  filter: blur(8px);
+  filter: blur(8px) brightness(0.8);
   z-index: -1;
   position: absolute;
 }
 .bgIMG {
   width: 100%;
   height: 100%;
+}
+/deep/.el-message-box {
+  @include background_color('background_color');
 }
 </style>

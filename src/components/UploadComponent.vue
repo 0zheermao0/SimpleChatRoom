@@ -2,7 +2,7 @@
   <el-upload
       ref="upload"
       :limit=limitNum
-      accept=".jpg, .png"
+      accept=".jpg, .png .gif"
       :data="this.uploadData"
       :action="this.uploadURL"
       :on-success="handleSuccess"

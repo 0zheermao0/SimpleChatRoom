@@ -5,12 +5,11 @@
         v-model="settings"
         title="I have a nested form inside!"
         direction="ltr"
-        custom-class="demo-drawer"
     >
       <el-row style="display: block">
         <el-space>
           <el-input v-model="this.info_user" placeholder="修改昵称"></el-input>
-          <el-button type="primary" disabled><el-icon><check /></el-icon></el-button>
+          <el-button type="primary" @click="onClickChangeName"><el-icon><check /></el-icon></el-button>
         </el-space>
       </el-row>
       <el-switch
@@ -28,11 +27,15 @@
           <el-button class="setting-btn" type="primary" color="#7c9cf1" @click="settings=true"><el-icon><setting /></el-icon></el-button>
         </div>
       </template>
-      <div>您的昵称是: {{this.user}}</div>
+      <div>您的昵称是: {{this.info_user}}</div>
       <br/>
-      <div style="color: darkslateblue">☆*: .｡. o(≧▽≦)o .｡.:*☆</div>
+      <div>☆*: .｡. o(≧▽≦)o .｡.:*☆</div>
       <br/>
       <div>您现在在: {{this.room}} 楼哦</div>
+      <br/>
+      <div>☆*: .｡. o(≧▽≦)o .｡.:*☆</div>
+      <br/>
+      <div>一共有 {{this.total}} 个小伙伴在线，快去找找他们在哪个房间</div>
       <el-card class="announcement-card">
         <template #header>
           <div class="announcement-card-header" style="text-align: center;align-items: center">
@@ -41,7 +44,7 @@
         </template>
         <div class="announcement-card-body">
             <div class="announcement-card-body-content-content">
-              <span>{{this.announcement.content}}</span>
+              <span  v-for="con in this.announcement.contents" :key="con">{{con}}<br/></span>
             </div>
           </div>
       </el-card>
@@ -64,9 +67,9 @@ export default {
     return {
       avatar_url: 'public/favicon.ico',
       settings: false,
-      info_user: '',
+      info_user: 'anonymous',
       announcement: {
-        content: '没有公告哦'
+        contents: ['1.支持夜间模式(我的配色审美就这样了,不服来打我)', '2.可以在设置里动态修改名字辣🥺' ,'3.即将实装消息灭霸机制（每天随机删掉一半消息）']
       },
       dark: false,
     }
@@ -79,13 +82,22 @@ export default {
     room: {
       type: String,
       default: '',
-    }
+    },
+    total: {
+      type: Number,
+      default: 0,
+    },
   },
   methods: {
-    onClickSetting() {
-      this.settings = true
-      // this.$message.info('别搞')
-    }
+    onClickChangeName() {
+      this.$store.commit('setUser', this.info_user)
+      console.log(this.$store.getters.getUser)
+      this.info_user = this.$store.getters.getUser
+      this.$message({
+        message: '修改成功',
+        type: 'success'
+      })
+    },
   },
   watch: {
     user(value) {
@@ -94,8 +106,8 @@ export default {
     },
     dark(value) {
       console.log(value);
-      // window.document.documentElement.getElementsByTagName('h1')[0].style.backgroundColor = value ? '#212121' : '#7c9cf1'
       window.document.documentElement.getElementsByClassName('el-scrollbar')[0].style.backgroundColor = value ? '#5b5b5b' : '#f2f2f2'
+      window.document.documentElement.getElementsByTagName('body')[0].style.backgroundColor = value ? '#5b5b5b' : '#f2f2f2'
       if(this.dark){
         window.document.documentElement.setAttribute( "data-theme", 'dark' );
       }else{
@@ -107,61 +119,6 @@ export default {
 </script>
 
 <style scoped lang="scss">
-.card-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.text {
-  font-size: 14px;
-}
-
-.item {
-  margin-bottom: 18px;
-}
-
-.box-card {
-  margin-left: 3vw;
-  width: 30vw;
-  height: 100%;
-}
-.setting-btn {
-  margin-left: auto;
-  color: #f2f2f2;
-}
-.announcement-card {
-  margin-top: 5%;
-}
-
-
-.wave {
-  position: relative;
-  left: 50%;
-  width: 150vw;
-  height: 150vw;
-  background-color: #7c9cf1;
-  border-radius: 46%;
-  animation-duration: 6s;
-  animation-name: rotate;
-  animation-iteration-count: infinite;
-  animation-timing-function: linear;
-  margin-top: 30%;
-}
-
-@keyframes rotate {
-  0% {
-    transform: translate(-50%, 0) rotateZ(0deg);
-  }
-
-  50% {
-    transform: translate(-50%, -1%) rotateZ(180deg);
-  }
-
-  100% {
-    transform: translate(-50%, 0) rotateZ(360deg);
-  }
-}
-
+@import "../assets/scss/common.scss";
 
 </style>

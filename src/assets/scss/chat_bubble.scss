@@ -1,0 +1,52 @@
+@import "./_handle.scss";
+
+.message-contents{
+  text-align: left;
+  padding-left: 10px;
+  border-radius: 10px;
+  float: right;
+  color: #f2f2f2;
+  word-break: break-all;
+}
+.message-details{
+  font-size: 1px;
+  padding-right: 10px;
+  border-radius: 10px;
+  text-align: right;
+  color: #f2f2f2;
+  @include font_color('font_color1')
+}
+.container{
+  //background-color: #6770ff;
+  @include background-color('background_color1');
+  width: 30%;
+  border-radius: 10px;
+  margin: 5px;
+  box-shadow:2px 2px 5px #525252;
+}
+.my-container{
+  //background-color: #8b91ff;
+  @include background-color('background_color1');
+  width: 30%;
+  border-radius: 10px;
+  margin: 5px;
+  box-shadow:2px 2px 5px #525252;
+}
+.admin-container{
+  color: #fffaff;
+  font-size: 1px;
+  background-color: #8c7e7e;
+  width: 30%;
+  border-radius: 5px;
+  margin: 1px;
+}
+.el-image{
+  width: 100%;
+  height: 100%;
+  position: center;
+  border-radius: 10px;
+}
+.el-image >>> .el-image__placeholder{
+  background: url('/src/assets/logo.png') no-repeat 50% 50% !important;
+  background-size: 100% !important;
+}
